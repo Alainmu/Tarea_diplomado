@@ -1,5 +1,5 @@
 # Tarea_diplomado
-
+Primera parte
 ## Titulo del trabajo
 Analisis crecimiento Salmo salar RAS vs FA
 
@@ -11,3 +11,4 @@ Evidenciar y cuantificar diferencias de crecimiento entre dos grupos de salmonid
 
 ## Descripción de las variables de estudio, los factores que desea analizar y el numero total de observaciones.
 Un ciclo de 54 semanas, desglosable en días y meses. Analizando tanto datos productivos como datos abióticos.
+
