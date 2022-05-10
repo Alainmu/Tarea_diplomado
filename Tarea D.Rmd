@@ -1,0 +1,57 @@
+---
+title: "Tarea"
+author: "Alain Muñoz"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(gapminder)
+library(ggplot2)
+library(psych)
+library(readxl)
+library(readr)
+library(ggplot2)
+library(dplyr)
+
+
+
+
+
+
+```
+
+## R Markdown
+
+Trabajaremos en base a un ciclo productivo Salmo salar de 54 semanas, con iguales condiciones para las 10 jaulas. Tomaremos datos de peso promedio final, conversión, mortalidad y velocidad de crecimiento en gramos por semana.
+
+```{r distribución observaciones}
+datos <- read_excel("/cloud/project/jaula.xlsx") 
+as.data.frame(datos)
+summary(datos)
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r histogramas, echo=TRUE}
+
+#histograma con mas datos de ejes y mas cadenas de comandos#
+#histograma para pprom#
+hist(x = datos$pprom, main = "Histograma de Pesos promedio", 
+     xlab = "Gramos", ylab = "Frecuencia",
+     col = "brown")
+
+#histograma para znum#
+hist(x = datos$znum, main = "Histograma de numero de mortalidad", 
+     xlab = "N mortalidad", ylab = "Frecuencia",
+     col = "grey")
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
