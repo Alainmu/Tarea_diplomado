@@ -5,9 +5,12 @@ library(readxl)
 library(readr)
 library(ggplot2)
 library(dplyr)
+library(gganimate)
+library(readr)
 
 datos <- read_excel("/cloud/project/jaula.xlsx") 
 as.data.frame(datos)
+
 
 #histograma de las variables#
 hist(x = datos$pprom)
@@ -28,6 +31,7 @@ hist(x = datos$znum, main = "Histograma de numero de mortalidad",
 
 
 ##homocedasticidad de los datos###
+
 plot(density(datos$pprom))
 plot(density(datos$znum))
 plot(density(datos$fcr))
@@ -51,7 +55,7 @@ ggplot(datos, aes(x=grupo, y=pprom, fill = grupo)) +
 interaction.plot(datos$grupo, datos$znum, datos$fcr)
 
 
-pairs.panels(datos[,2:6], method = "pearson", hist.col = "red",  density = TRUE, font=3)
+pairs.panels(datos[,1:6], method = "pearson", hist.col = "red",  density = TRUE, font=3)
 
 
 #GRAFICAS EN MOVIMIENTO#
@@ -130,7 +134,7 @@ library(gganimate)
 library(gameofthrones)
 
 
-all <- read_excel("/cloud/project/jaula.xlsx")
+all <- read_excel("/cloud/project/jaulas.xlsx")
 as.data.frame(all)
 
 
@@ -246,3 +250,6 @@ g1 = all1%>%
 #Animando el objeto de ggplot:
 
 animate(g1)
+
+
+

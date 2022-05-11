@@ -1,5 +1,5 @@
 ---
-title: "Tarea"
+title: "Tarea Diplomado"
 author: "Alain Muñoz"
 date: "`r format(Sys.time(), '%d %B %Y')`"
 output: html_document
@@ -15,6 +15,12 @@ library(readxl)
 library(readr)
 library(ggplot2)
 library(dplyr)
+library(gganimate)
+library(gifski)
+library(tidyverse)
+library(ineq)
+library(gganimate)
+library(gameofthrones)
 
 
 
@@ -23,21 +29,21 @@ library(dplyr)
 
 ```
 
-## R Markdown
+## INTRODUCCIÓN
 
 Trabajaremos en base a un ciclo productivo Salmo salar de 54 semanas, con iguales condiciones para las 10 jaulas. Tomaremos datos de peso promedio final, conversión, mortalidad y velocidad de crecimiento en gramos por semana.
 
 ```{r distribución observaciones}
 datos <- read_excel("/cloud/project/jaula.xlsx") 
-as.data.frame(datos)
-summary(datos)
+
+head(datos)
 
 
 ```
 
-## Including Plots
+## GRÁFICAS
 
-You can also embed plots, for example:
+
 
 ```{r histogramas, echo=TRUE}
 
@@ -46,6 +52,14 @@ You can also embed plots, for example:
 hist(x = datos$pprom, main = "Histograma de Pesos promedio", 
      xlab = "Gramos", ylab = "Frecuencia",
      col = "brown")
+```
+
+
+## Primera apreciación
+
+La distribución de pesos promedios tiene una alta aglomeración en el rango < a 200 [gr], lo cual nos da un indicio de que el grupo conformado por peces provenientes de piscicultura RAS SEALAND, posee un peso menor al de los peces FA SISA y, está ensuciando de alguna manera el desempeño general del universo.
+
+```{r histogramas2, echo=TRUE}
 
 #histograma para znum#
 hist(x = datos$znum, main = "Histograma de numero de mortalidad", 
@@ -54,4 +68,148 @@ hist(x = datos$znum, main = "Histograma de numero de mortalidad",
 
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Apreciaciones
+
+La distribucion de frecuencias de mortalidad, tambien nos indica que los peces muertos con mayor frecuencia, pertenecen al grupo < a 2000 [gr]
+
+## Pruebas de homocedasticidad
+
+Realizaremos pruebas de homocedasticidad e independencia de los datos a trabajar.
+
+```{r pruebas homocedasticidad, echo=TRUE}
+plot(density(datos$pprom))
+plot(density(datos$znum))
+plot(density(datos$fcr))
+
+plot(ecdf(datos$pprom))
+plot(ecdf(datos$znum))
+plot(ecdf(datos$fcr))
+
+##inndependencia y variacion entre los datos
+
+ggplot(datos, aes(x=grupo, y=pprom, fill = grupo)) +
+  geom_boxplot()
+
+
+ggplot(datos, aes(x=grupo, y=pprom, fill = grupo)) +
+  labs(y = "Peso promedio (g")+
+  geom_boxplot() + 
+  geom_jitter()
+
+#interaccion entre los datos##
+interaction.plot(datos$grupo, datos$znum, datos$fcr)
+
+
+
+corPlot(datos[,4:6], cex = 1.9, main = "Matriz de correlación")
+
+```
+
+## Supuestos previos
+Las pruebas de interacción y correlación, no son determinantes como para decidir la diferencia entre los grupos de peces de pisciculturas de recirculación (RAS) y flujo abierto (FA). Por lo tanto, previo a un análisis de hipótesis, realizaremos una exploración visual del comportamiento del centro en cuestión.
+
+```{r evolucion en mov, echo=TRUE}
+grafico <- datos %>%
+  ggplot() + 
+  geom_point(aes(x = pprom, y = fcr, col = grupo, size = znum), alpha = 0.8) + theme_classic() + 
+  theme(legend.position = "bottom") + guides(size = "none") + 
+  labs(x = "Peso Promedio [gr]" ,y = "FCR",  col = "") 
+
+grafico +
+  transition_time(sem)
+```
+## Otra visión, nos la puede entregar la velocidad de crecimiento por semana, es decir, expresar una tasa de cambio para cada grupo en [gr/sem]. Ésto queda evidenciado al observar ambos grupos durante las 54 semanas de cultivo.
+
+```{r velocidad sisa}
+velocidades <- read_excel("/cloud/project/velocidades.xlsx")
+
+head(velocidades)
+
+#velocidad crecimiento SISA
+
+velocidades %>%
+  filter(grupo == "SISA") %>%
+  ggplot(aes(sem, grporsem)) + geom_point() + geom_line() + 
+  geom_text(aes(x = min(sem), y = min(grporsem), label = as.factor(sem)) , hjust=-2, vjust = -0.2, alpha = 0.5,  col = "gray", size = 20) +
+  theme_minimal() +
+  transition_reveal(sem) + 
+  ggtitle("Velocidad crecimiento",
+          subtitle = "SISA")+
+  
+  view_follow()
+```
+
+```{r velocidad sealand}
+#Velocidad crecimiento SEALAND
+velocidades %>%
+  filter(grupo == "SEALAND") %>%
+  ggplot(aes(sem, grporsem)) + geom_point() + geom_line() + 
+  geom_text(aes(x = min(sem), y = min(grporsem), label = as.factor(sem)) , hjust=-2, vjust = -0.2, alpha = 0.5,  col = "gray", size = 20) +
+  theme_minimal() +
+  transition_reveal(sem) + 
+  ggtitle("Velocidad crecimiento",
+          subtitle = "SEALAND")+
+  
+  view_follow()
+```
+
+## Ahora bien, si queremos visualizar el desempeño por jaula, en una misma gráfica.
+
+```{r crecimientos}
+
+
+
+all <- read_excel("/cloud/project/jaulas.xlsx")
+all%>%
+  ggplot(aes(x = semana, y = pprom, color = jaula))+
+  geom_line( )+
+  geom_point()+
+  xlab("Semana")+
+  ylab("Peso [gr]")+
+  labs(color = "Jaula")+
+  ggtitle("Evoluci?n peso por jaula")+
+  theme_minimal()
+
+#creamos el objeto de ggplot
+
+g1 = all%>%
+  ggplot(aes(x = semana, y = pprom, color = jaula))+
+  geom_line(size = 1)+
+  geom_point(aes(group = seq_along(semana)), size = 2)+
+  
+  #estos son los segmentos que unirás las lineas con los datos
+  geom_segment(aes(xend = 54, yend = pprom, group = jaula),
+               linetype = 2, colour = 'grey') +
+  
+  #Los datos:
+  geom_text(aes(x = 54, label = jaula), hjust = 0)+
+  guides(color = FALSE)+
+  scale_color_got_d(option = "Daenerys")+
+  scale_x_continuous(breaks = seq(1, 54, by = 2),
+                     limits = c(1, 54))+
+  xlab("")+
+  ylab("")+
+  ggtitle("Crecimiento Forsyth 2021",
+          subtitle = "Crecimiento semanal por jaula, 1 - 54")+
+  labs(caption="Alain Munoz ")+
+  theme_minimal()+
+  
+  
+  #aumentando la fuentte para que sea mas amigable en el gif:
+  
+  theme(plot.title = element_text(size = 15),
+        plot.subtitle = element_text(size = 12),
+        axis.text.x = element_text(size = 10),
+        plot.caption = element_text(size = 10, color = "grey40"))+
+
+#animacion
+
+transition_reveal(semana)+
+  coord_cartesian(clip = 'off') +
+  enter_fade() +
+  exit_shrink()
+
+#moviendo el objeto:
+
+animate(g1)
+```
