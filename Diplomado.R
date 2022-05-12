@@ -32,6 +32,7 @@ hist(x = datos$znum, main = "Histograma de numero de mortalidad",
 
 ##homocedasticidad de los datos###
 
+par(mfrow=c(2, 3)) 
 plot(density(datos$pprom))
 plot(density(datos$znum))
 plot(density(datos$fcr))
@@ -52,7 +53,7 @@ ggplot(datos, aes(x=grupo, y=pprom, fill = grupo)) +
   geom_jitter()
 
 #interaccion entre los datos##
-interaction.plot(datos$grupo, datos$znum, datos$fcr)
+interaction.plot(datos$grupo, datos$pprom, datos$fcr)
 
 
 pairs.panels(datos[,1:6], method = "pearson", hist.col = "red",  density = TRUE, font=3)
@@ -252,4 +253,17 @@ g1 = all1%>%
 animate(g1)
 
 
+#hipotesis
 
+ggplot(datos, aes(x=grupo, y=pprom, fill = grupo)) +
+  labs(y = "Peso promedio (g")+
+  geom_boxplot() + 
+  geom_jitter()
+#los boxplot no se traslapan, nos da un indicio de que las medias poblacionales son distintas
+
+grupos <- read_excel("/cloud/project/grupos.xlsx")
+as.data.frame(grupos)
+
+
+t.test(x=grupos$ppromss, y=grupos$ppromsl, alternative="two.sided", mu=0, 
+       paired=FALSE, var.equal=FALSE, conf.level=0.95)

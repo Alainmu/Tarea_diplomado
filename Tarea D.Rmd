@@ -21,6 +21,8 @@ library(tidyverse)
 library(ineq)
 library(gganimate)
 library(gameofthrones)
+library(png)
+library(grid)
 
 
 
@@ -33,6 +35,15 @@ library(gameofthrones)
 
 Trabajaremos en base a un ciclo productivo Salmo salar de 54 semanas, con iguales condiciones para las 10 jaulas. Tomaremos datos de peso promedio final, conversión, mortalidad y velocidad de crecimiento en gramos por semana.
 
+```{r ,echo=FALSE}
+
+img <- readPNG("/cloud/project/foto.png")
+ grid.raster(img)
+```
+
+
+
+
 ```{r distribución observaciones}
 datos <- read_excel("/cloud/project/jaula.xlsx") 
 
@@ -41,7 +52,7 @@ head(datos)
 
 ```
 
-## GRÁFICAS
+## GRÁFICAS EXPLORATORIAS
 
 
 
@@ -57,7 +68,7 @@ hist(x = datos$pprom, main = "Histograma de Pesos promedio",
 
 ## Primera apreciación
 
-La distribución de pesos promedios tiene una alta aglomeración en el rango < a 200 [gr], lo cual nos da un indicio de que el grupo conformado por peces provenientes de piscicultura RAS SEALAND, posee un peso menor al de los peces FA SISA y, está ensuciando de alguna manera el desempeño general del universo.
+La distribución de pesos promedios tiene una alta aglomeración en el rango < a 200 [gr], lo cual nos da un indicio de que el grupo conformado por peces provenientes de piscicultura RAS SEALAND, posee un peso menor al de los peces FA SISA.
 
 ```{r histogramas2, echo=TRUE}
 
@@ -77,6 +88,7 @@ La distribucion de frecuencias de mortalidad, tambien nos indica que los peces m
 Realizaremos pruebas de homocedasticidad e independencia de los datos a trabajar.
 
 ```{r pruebas homocedasticidad, echo=TRUE}
+par(mfrow=c(2, 3)) 
 plot(density(datos$pprom))
 plot(density(datos$znum))
 plot(density(datos$fcr))
@@ -97,7 +109,7 @@ ggplot(datos, aes(x=grupo, y=pprom, fill = grupo)) +
   geom_jitter()
 
 #interaccion entre los datos##
-interaction.plot(datos$grupo, datos$znum, datos$fcr)
+interaction.plot(datos$grupo, datos$pprom, datos$fcr)
 
 
 
@@ -212,4 +224,30 @@ transition_reveal(semana)+
 #moviendo el objeto:
 
 animate(g1)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```
+## Prueba de Hipotesis.
+en una primera parte, la gráfica de cajas nos indica que las medias poblacionales μ1 y  μ2 de ambos grupos no son iguales ya que no se tralapan.
+En este problema interesa estudiar el siguiente conjunto de hipótesis.
+
+H0:μ1−μ2=0
+H1:μ1−μ2≠0
+
+```{r prueba de hipótesis}
+ggplot(datos, aes(x=grupo, y=pprom, fill = grupo)) +
+  labs(y = "Peso promedio (g")+
+  geom_boxplot() + 
+  geom_jitter()
+#los boxplot no se traslapan, nos da un indicio de que las medias poblacionales son distintas
+
+grupos <- read_excel("/cloud/project/grupos.xlsx")
+as.data.frame(grupos)
+
+
+t.test(x=grupos$ppromss, y=grupos$ppromsl, alternative="two.sided", mu=0, 
+       paired=FALSE, var.equal=FALSE, conf.level=0.95)
+
+
+```
+## De la prueba se obtiene un valor-P pequeño, por lo tanto, podemos concluir que si hay diferencias significativas entre la evolución semanal, en peso promedio, entre los grupos SISA y SEALAND.
+
